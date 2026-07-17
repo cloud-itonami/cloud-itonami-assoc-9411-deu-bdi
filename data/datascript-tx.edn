@@ -1,0 +1,25 @@
+;; data/datascript-tx.edn — DataScript tx-data derived from src/association/facts.cljc
+;; `association.facts/catalog` (ADR-2607141700 Wave 0). Same shape as sibling files.
+
+[#:association-rule{:id "bdi.statute-approved-1949-07-01"
+                     :title "The Allied military government's representatives approved the statute for a future German industry-wide representation on 1 July 1949"
+                     :association "bdi"
+                     :isic "9411"
+                     :country "DEU"
+                     :kind :governance-program
+                     :url "https://de.wikipedia.org/wiki/Bundesverband_der_Deutschen_Industrie"
+                     :url-provenance :wikipedia-corroborated
+                     :established-date "1949-07-01"
+                     :retrieved-at "2026-07-18"
+                     :topic [:governance]}
+ #:association-rule{:id "bdi.predecessor-founding-1949-10-19"
+                     :title "32 business associations and working groups founded BDI's direct predecessor, the Ausschuss für Wirtschaftsfragen der industriellen Verbände, on 19 October 1949"
+                     :association "bdi"
+                     :isic "9411"
+                     :country "DEU"
+                     :kind :governance-program
+                     :url "https://bdi.eu/en/the-bdi/verbandsgeschichte"
+                     :url-provenance :official-bdi-eu
+                     :established-date "1949-10-19"
+                     :retrieved-at "2026-07-18"
+                     :topic [:governance]}]
