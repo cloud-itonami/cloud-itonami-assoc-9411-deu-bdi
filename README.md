@@ -12,25 +12,37 @@ Part of the [`cloud-itonami`](https://github.com/cloud-itonami)
 compliance-fact family (ADR-2607141700,
 `cloud-itonami-compliance-fact-federation`, in `com-junkawasaki/root`).
 
-The **first** entry in a new standing direction: the 16-country
-ISIC-9411 gap discovered at tick 171 (ARE/AUS/CHE/DEU/ESP/FRA/GBR/
-IDN/JPN/MYS/NGA/NOR/PHL/TUR/USA/VNM), all of which already have full
-country + municipality axis coverage but lack a general ISIC 9411
-confederation entry specifically (though several, including Germany,
-already have OTHER industry-specific association entries, e.g.
-[`cloud-itonami-assoc-2910-deu-vda`](https://github.com/cloud-itonami/cloud-itonami-assoc-2910-deu-vda)
-for automotive). Germany now has real, individually verified facts
-across **all three axes**.
+Germany has real, individually verified facts across **all three axes**
+(country: `cloud-itonami-iso3166-deu`; municipality:
+`cloud-itonami-municipality-deu-berlin`; association: this entry, the
+first ISIC-9411-specific one).
 
-## Sourcing note
+## Sourcing
 
-Both dates are directly confirmed. `bdi.eu`'s own official history
-page confirms the 19 October 1949 founding of BDI's direct
-predecessor (the Ausschuss für Wirtschaftsfragen der industriellen
-Verbände). Independently corroborated and extended by
-`de.wikipedia.org`, which additionally supplies a distinct, day-precise,
-earlier milestone: the Allied military government's 1 July 1949
-approval of the statute for such a representation.
+**16 entries, four voices, six pages.** Every entry carries the verbatim
+span at its URL that it rests on, because *reachability is not support*:
+a page that answers 200 and no longer states the claim looks exactly like
+one that does.
+
+| Voice | Host | What it is |
+|---|---|---|
+| `:official-bdi-eu` | `bdi.eu` | BDI about itself |
+| `:german-lobbyregister` | `lobbyregister.bundestag.de` | the German state's own lobby register (R000534) |
+| `:peak-body-businesseurope` | `businesseurope.eu` | the European peak body BDI belongs to |
+| `:wikipedia-corroborated` | `de.wikipedia.org` | an encyclopaedia |
+
+Three entries are stated independently by a second voice
+(`association.facts/corroborated`). Nine carry no date, each naming why
+its source gives none (`association.facts/undated`) — an invented date
+and an honestly-absent one must not look alike.
+
+**Two entries disagree, and both are kept.** BDI's own history page dates
+the rename from *Ausschuss für Wirtschaftsfragen der industriellen
+Verbände* to *BDI* as `nur wenige Wochen später` (weeks after 19 October
+1949); `de.wikipedia.org` says `Zu Beginn des Jahres 1950`. Neither is
+discarded and no third date is invented to reconcile them — the
+disagreement is a fact about the sources, and folding it away would be
+the one edit a reader could not detect.
 
 ## Scope
 
@@ -41,13 +53,32 @@ Coverage is reported honestly (see `association.facts/coverage`): an
 association not in `catalog` has **no spec-basis**, full stop — never
 fabricate one.
 
+## Checking it
+
+```bash
+nbb scripts/verify-catalog.cljs           # structural only, offline
+nbb scripts/verify-catalog.cljs --live    # re-read every span at its source
+nbb scripts/gen-kotoba-port.cljs --check  # is the Kotoba port what the data says?
+clojure -M:test                           # .cljc vs .kotoba, field by field
+```
+
+`verify-catalog.cljs` exits **0** checked and clean, **1** checked with
+findings, **2** REFUSED — it could not read the sources, which must not
+leave the same trace as reading them and finding nothing wrong.
+
 ## Data
 
-- `src/association/facts.cljc` — the catalog, source of truth.
-- `schema/association-rule.edn` — DataScript schema.
-- `data/datascript-tx.edn` — derived DataScript tx-data (query this
-  alongside other `cloud-itonami`/`etzhayyim` compliance-fact sources via
-  `com-junkawasaki/root`'s `scripts/compliance-fact-query.cljs`).
+- `data/datascript-tx.edn` — the catalog, and the input to the generator
+  and the verifier.
+- `src/association/facts.cljc` — the same catalog as Clojure data, plus
+  `spec-basis` / `coverage` / `by-topic` / `sources` / `undated` /
+  `corroborated`.
+- `src/association_facts.kotoba` — **generated**; reaches the Kotoba
+  oracle, wasm and both native ISAs, which the `.cljc` cannot. Do not
+  hand-edit; run `scripts/gen-kotoba-port.cljs`.
+- `schema/association-rule.edn` — DataScript schema. Query this alongside
+  other `cloud-itonami`/`etzhayyim` compliance-fact sources via
+  `com-junkawasaki/root`'s `scripts/compliance-fact-query.cljs`.
 
 ## License
 
