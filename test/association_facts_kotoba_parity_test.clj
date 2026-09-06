@@ -13,6 +13,7 @@
   below compares against that written order rather than against `seq` on a set,
   which is not stable to rely on."
   (:require [clojure.test :refer [deftest is testing]]
+            [clojure.edn :as edn]
             [association.facts :as facts]
             [kotoba.compiler.core :as compiler]
             [kotoba.kir :as ir]))
@@ -25,21 +26,34 @@
 (def ^:private slug "bdi")
 (def ^:private fields
   ["id" "title" "association" "isic" "country" "kind" "url" "url-provenance"
-   "established-date" "retrieved-at"])
+   "source-quote" "corroborating-url" "corroborating-provenance"
+   "corroborating-quote" "established-date" "date-basis"
+   "date-not-narrowed-because" "date-unknown-because" "retrieved-at"])
 (def ^:private kw->field
-  {"id" :association-rule/id "title" :association-rule/title
-   "association" :association-rule/association "isic" :association-rule/isic
-   "country" :association-rule/country "kind" :association-rule/kind
-   "url" :association-rule/url "url-provenance" :association-rule/url-provenance
-   "established-date" :association-rule/established-date
-   "retrieved-at" :association-rule/retrieved-at})
+  (into {} (map (juxt identity #(keyword "association-rule" %))) fields))
 (def ^:private entries (vec (facts/spec-basis slug)))
-(def ^:private topic-order [["governance"] ["governance"]])
+
+;; The written order of `:topic`, taken from the file the port is generated
+;; from rather than retyped here. A hand-maintained copy of this list is a
+;; constant that has to be edited every time the catalog grows, and the edit
+;; that keeps the suite green is the one that stops it checking -- while
+;; reading it from the data still discriminates, because the assertions below
+;; compare the port's answers position by position against the .cljc's set.
+(def ^:private topic-order
+  (mapv #(mapv name (:association-rule/topic %))
+        (edn/read-string (slurp "data/datascript-tx.edn"))))
 
 (deftest the-fixture-reads-a-real-catalog
   ;; An empty catalog compares equal to an empty port.
   (is (pos? (count entries)))
-  (is (= (count entries) (count topic-order))))
+  (is (= (count entries) (count topic-order)))
+  ;; Every field this suite compares must actually be carried by some entry.
+  ;; A field no entry has is compared as nil = nil for all of them, which is
+  ;; a passing assertion that checks nothing -- and it is exactly what a typo
+  ;; in `fields` produces.
+  (doseq [f fields]
+    (is (some #(some? (get % (kw->field f))) entries)
+        (str "no entry carries " f ", so comparing it proves nothing"))))
 
 (deftest every-field-of-every-entry-is-transcribed
   (is (= (count entries) (call 'entry-count slug)))
@@ -64,11 +78,17 @@
         (is (= nm (present (call 'topic slug i t))))))))
 
 (deftest by-topic-answers-the-same-entries
-  (doseq [names topic-order t names]
+  ;; Every position, not just the first. Seven topics here are carried by more
+  ;; than one entry, so a port that answered position 0 correctly and dropped
+  ;; the rest would pass a first-only check while losing most of the index.
+  (doseq [t (distinct (mapcat identity topic-order))]
     (testing t
       (let [cljc (mapv :association-rule/id (facts/by-topic slug (keyword t)))]
         (is (= (count cljc) (call 'by-topic-count slug t)))
-        (is (= (first cljc) (present (call 'by-topic-id slug t 0)))))))
+        (doseq [[pos id] (map-indexed vector cljc)]
+          (is (= id (present (call 'by-topic-id slug t pos)))))
+        (is (nil? (present (call 'by-topic-id slug t (count cljc))))
+            "one past the end is not an entry"))))
   (is (zero? (call 'by-topic-count slug "no-such-topic")))
   (is (nil? (present (call 'by-topic-id slug "no-such-topic" 0)))))
 
