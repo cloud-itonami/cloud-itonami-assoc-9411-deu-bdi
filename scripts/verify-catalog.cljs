@@ -49,7 +49,7 @@
 
 (ns verify-catalog
   (:require [clojure.edn :as edn]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             ["fs" :as fs]
             ["os" :as os]
             ["path" :as path]
@@ -118,7 +118,7 @@
     [txt data]))
 
 (defn- host-of [u]
-  (when-let [m (re-find #"^https?://([^/]+)" (str u))] (str/lower-case (second m))))
+  (when-let [m (re-find #"^https?://([^/]+)" (str u))] (str/lower (second m))))
 
 (defn- host-matches? [host suffix]
   (and host (or (= host suffix) (str/ends-with? host (str "." suffix)))))
@@ -289,7 +289,7 @@
    bare `02` anywhere on the page pass for February."
   [hay mm]
   (let [i (dec (js/parseInt mm 10))
-        low (str/lower-case hay)]
+        low (str/lower hay)]
     (and (<= 0 i 11)
          (or (str/includes? low (nth en-months i))
              (str/includes? low (nth de-months i))))))
