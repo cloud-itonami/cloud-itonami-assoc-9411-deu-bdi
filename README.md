@@ -56,10 +56,10 @@ fabricate one.
 ## Checking it
 
 ```bash
-nbb scripts/verify-catalog.cljs           # structural only, offline
-nbb scripts/verify-catalog.cljs --live    # re-read every span at its source
-nbb scripts/gen-kotoba-port.cljs --check  # is the Kotoba port what the data says?
-clojure -M:test                           # .cljc vs .kotoba, field by field
+kbb --backend sci scripts/verify-catalog.cljk           # structural only, offline
+kbb --backend sci scripts/verify-catalog.cljk --live    # re-read every span at its source
+kbb --backend sci scripts/gen-kotoba-port.cljk --check  # is the Kotoba port what the data says?
+kbb -M:test                           # .cljc vs .kotoba, field by field
 ```
 
 `verify-catalog.cljs` exits **0** checked and clean, **1** checked with
